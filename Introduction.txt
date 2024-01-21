@@ -7,7 +7,7 @@ Skilled in using tools like Python, SQL, and data visualization libraries.
 Constantly expanding my knowledge in machine learning and statistical analysis.
 
 🚀 Aspiring Data Analyst:
-My goal is to evolve into a proficient data analyst, leveraging my skills to derive meaningful conclusions from complex datasets. Whether it's uncovering trends or solving real-world problems, I'm driven by the power of data to make informed decisions.
+My goal is to evolve into a proficient Data Analyst, leveraging my skills to derive meaningful conclusions from complex datasets. Whether it's uncovering trends or solving real-world problems, I'm driven by the power of data to make informed decisions.
 
 🌐 Connect with Me:
 Let's collaborate, learn, and grow together in the data universe. Feel free to explore my repositories and drop me a message. Exciting data journeys await!
