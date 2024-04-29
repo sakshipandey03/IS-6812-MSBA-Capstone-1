@@ -22,23 +22,23 @@ I implemented the logistic regression model to handle the class imbalance issue,
 ## Business Value of Loan Default Prediction Solution
 The loan default prediction solution developed for Home Credit addresses the critical challenge of identifying borrowers with a higher likelihood of successful loan repayment. This section outlines the business value derived from the solution, emphasizing risk mitigation, financial impact, and business growth.
 
-### 1) Precision Enhancement in Identifying Successful Repayment
+#### 1) Precision Enhancement in Identifying Successful Repayment
 Our project significantly enhances the precision of identifying borrowers likely to repay their loans. We improve our ability to predict successful loan repayments through meticulous data preparation, advanced feature engineering, and model optimization. We minimize the financial repercussions associated with borrower defaults by utilizing robust sampling techniques, baseline models, and advanced model tuning.
 
-### 2) Empowerment for Effective Risk Mitigation Strategies
+#### 2) Empowerment for Effective Risk Mitigation Strategies
 Our solution empowers Home Credit to implement effective risk mitigation strategies. We provide insights into the factors influencing predictions, enabling the company to devise targeted measures to mitigate risks associated with loan approvals.
 
-### 3) Reduction of Default Rates
+#### 3) Reduction of Default Rates
 (1) Our model predicts default rates, allowing Home Credit to identify customers likely to default.
 
 (2) By reducing default rates, our solution helps lower the risk of non-performing assets, increasing business income.
 
-### 4) Expansion of Customer Base and Revenue
+#### 4) Expansion of Customer Base and Revenue
 (1) Our solution enables Home Credit to provide loans to underserved customers with insufficient or non-existent credit histories, expanding the customer base and revenue potential.
 
 (2) Utilizing technology and machine learning models in the financial sector fosters business growth and streamlines operations.
 
-### 5) Key Factors Influencing Default Rates
+#### 5) Key Factors Influencing Default Rates
 (1) Goods Concentration: Emphasizing the goods for which credit has been provided can mitigate default risks.
 
 (2) Regional Factors: Region rating, population, and annual credit amount influence default rates, providing insights for risk assessment.
@@ -51,26 +51,26 @@ The loan default prediction solution enhances Home Credit's risk management capa
 ## Difficulties Encountered
 While developing our loan default prediction solution for Home Credit, our team faced several challenges. These difficulties, while demanding, ultimately provided valuable learning experiences that strengthened our project.
 
-### 1. Class Imbalance: 
+#### 1. Class Imbalance: 
 One significant hurdle was dealing with a class imbalance within the target variable. The disproportionate distribution of loan repayment outcomes posed challenges in model training and evaluation.
 
-### 2. Data Quality and Preprocessing: 
+#### 2. Data Quality and Preprocessing: 
 Ensuring data quality and preprocessing posed another challenge. The dataset required extensive cleaning, handling missing values, and encoding categorical variables to make it suitable for modeling.
 
-### 3. Feature Engineering: 
+#### 3. Feature Engineering: 
 Crafting meaningful features from raw data proved to be a complex task. We experimented with various feature engineering techniques to capture relevant information and improve model performance.
 Model Selection and Optimization: Selecting the appropriate model and optimizing its performance was time-consuming. We experimented with different algorithms and hyperparameters to find the most effective solution.
 
-### 4. Interpretability: 
+#### 4. Interpretability: 
 Ensuring the interpretability of our models was essential for Home Credit's risk management strategies. Balancing model complexity with explainability posed a challenge, especially while achieving high predictive accuracy.
 
-### 5. Resource Constraints: 
+#### 5. Resource Constraints: 
 Limited computational resources, including processing power and memory, sometimes slowed our experimentation and model training processes.
 
-### 6. Deadline Pressure: 
+#### 6. Deadline Pressure: 
 Meeting project deadlines amidst complex challenges added pressure. Balancing quality with timeliness was a constant challenge.
 
-### 7. Domain Knowledge: 
+#### 7. Domain Knowledge: 
 Understanding the intricacies of the financial domain, including credit scoring and risk assessment, required additional learning and collaboration with domain experts.
 
 
@@ -80,7 +80,7 @@ Despite these challenges, our team's dedication, perseverance, and collaborative
 ## Lessons Learned
 Throughout this project, I gained valuable insights and lessons that have significantly enhanced my skills and understanding in various areas of data science.
 
-### 1. Deeper Understanding of Data Preprocessing
+#### 1. Deeper Understanding of Data Preprocessing
 I learned the importance of thorough data preprocessing. Handling missing values, encoding categorical variables, and scaling features appropriately are critical steps that significantly impact model performance.
 
 #### 2. Importance of Feature Engineering
