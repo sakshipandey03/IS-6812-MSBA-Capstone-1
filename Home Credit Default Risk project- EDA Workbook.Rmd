@@ -1,0 +1,331 @@
+---
+title: "Home Credit Default Risk project- EDA Workbook"
+author: "Sakshi Pandey"
+date: "2024-02-19"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, ECHO=FALSE, results=FALSE}
+#import packages here
+library(tidyverse)
+
+```
+
+# Introduction
+## Business Problem Statement
+Numerous individuals require assistance in verifying and demonstrating their creditworthiness when applying for loans. This situation arises due to inadequate or nonexistent credit histories and variations in individuals' financial backgrounds. Insufficient financial and credit histories pose challenges for lenders in accurately identifying and predicting the default risk associated with customers. Consequently, there is a potential for misclassifying borrowers, leading to a reduction in the pool of reliable borrowers and possibly excluding prospective customers who would indeed be trustworthy borrowers.
+
+The objective of the proposed project is to develop a supervised analytical model that assists Home Credit in forecasting the repayment capability of each loan applicant. Our analytical approach involves leveraging various features from both current and past loan applications to construct a supervised model. This model will utilize multiple regression and machine learning techniques such as k-fold Cross-Validation, Gaussian Mixture Model, and Artificial Neural Networks. Additionally, we will integrate different transaction datasets to enhance the predictive model's accuracy and performance
+
+The primary outcome of this project will involve developing a predictive model capable of distinguishing between loan defaulters and non-defaulters. This model will serve as a valuable tool for future analyses and will facilitate a formal assessment of the significance of various variables in predicting the repayment ability of business loans. The implementation of such a model will benefit lenders by furnishing them with more dependable models, while customers will gain increased access to financial services that were previously inaccessible due to the absence of historical financial data.
+
+We aim to produce a draft report by April 2, 2024, with the final deliverable scheduled for April 16, 2024. The project will be structured around three key milestones: Exploratory Data Analysis, Model Development, and Final Model Presentation. Success for this project will be defined by delivering a predictive model that is reliable, efficient, and cost-effective, utilizing existing data without necessitating additional resources for future information collection.
+
+## Guiding Questions & Considerations
+<ul>
+<li>Should we consolidate the datasets, and which datasets are pertinent for our modeling and analysis?</li>
+<li>Regarding dataset consolidation, is it preferable to clean the data before merging, or merge first and then clean?</li>
+<li>What are the primary statistical summaries for the application_{train|test}.csv dataset?</li>
+<li>Which datasets should we prioritize for our Exploratory Data Analysis?</li>
+<li>How do you propose managing missing values within the datasets?</li>
+<li>What are the datasets deemed nonessential for our analysis?</li>
+<li>Which variables in the training and test sets offer the most comprehensive understanding of our data and potential insights for analysis and model development?</li>
+<li>Which variables within the training set are most effective in predicting the target data?</li>
+<li>Is it advisable to impute values for columns with only a small number of NA values?</li>
+<li>What is the optimal approach for handling NA values in categorical variables? Considering that NA values are excluded from the graphs for categorical variables, would it be beneficial to include them in the graphs labeled as "NA"?</li>
+</ul>
+
+
+# Data Structure
+## Data Summary
+Home Credit has provided analysts with ten distinct tables stored in CSV files. These include: application_train, application_test, bureau, bureau_balance, POS_CASH_balance, credit_card_balance, installments_payments, and home_credit_columns_descriptions. Cumulatively, these files contain a substantial amount of data, totaling 2.68GB. While there are numerous potential features to explore, much of the data is incomplete, and cleaning each feature will require considerable time. For the purpose of Exploratory Data Analysis (EDA), this notebook concentrates on the training_data table, which comprises 122 features. The other datasets were included initially to determine the scope but may not necessarily be integrated into this notebook. 
+
+```{r data setup}
+#this block imports all datasets except the test set for EDA purposes.
+#NOTE - you must have the csv files saved within your local github folder. Git will not sync them.
+
+#this is the primary dataset, it contains the target variable
+training_data <- read.csv('application_train.csv')
+
+#dataset with all clients' previous credits.
+bureau <- read.csv('bureau.csv')
+
+#dataset with monthly balances of previous credits from Credit Bureau
+#NOTE - joins on credit institution
+#bureau_balance <- read.csv('bureau_balance.csv') 
+
+#monthly balance of client's previous loans, behavioral data
+#cash_balance <- read.csv('POS_CASH_balance.csv')
+
+#application information from previous loans
+#previous_applicants <- read.csv('previous_application.csv')
+
+#installment payment info for previous loan holders
+#installment_payments <- read.csv('installments_payments.csv')
+
+#data set with clients' credit card balances
+#credit_card_balance <- read.csv('credit_card_balance.csv')
+
+```
+
+## Target Variable
+The dataset provided by the data provider identifies the target variable as "TARGET" in the application_{train|test}.csv dataset. This variable is binary, denoted by either a 1 or a 0. A value of 1 signifies that the borrower is either delinquent or in default, with variations in lateness and the number of installments. Approximately 8.1% of all borrowers in the dataset fall into the target category. This indicates a significant imbalance in classification, which needs to be addressed in subsequent modeling and feature selection stages. In the upcoming phase of the project (modeling), this target variable will be predicted in the testing dataset. 
+
+```{r target_var}
+#8.1% of popultion is identified as the target (delinquent/payment hardships)
+print(mean(training_data$TARGET))
+
+#since TARGET is a binary variable, it will be factored for further analysis
+training_data$TARGET <- as.factor(training_data$TARGET)
+
+#The majority class (non-target or TARGET = 0) has 282686 observations, while the minority class has 24,825.
+#This will be a major classificaiton imbalance.
+summary(training_data$TARGET)
+
+#income boxplot comparing monthly income and delinquency (target)
+#NOTE: there is on outlier value of $117,000,000. This is possibly a typo as it skews the rest of the set.
+training_data %>%
+   filter(AMT_INCOME_TOTAL < 117000000) %>%
+   ggplot(aes(TARGET,AMT_INCOME_TOTAL)) + geom_boxplot()
+
+#generates table with delinquincy status by median income. Target borrowers appear to have lower median incomes ($135000 instead of $148,500)
+training_data %>%
+        select(TARGET, AMT_INCOME_TOTAL) %>%
+        group_by(TARGET) %>%
+        summarise(median(AMT_INCOME_TOTAL))
+
+```
+
+## Data Formatting
+As we delved into the extensive data, we encountered significant challenges. These included improperly formatted data, substantial missing observations for certain features, and notable outliers, all of which will pose challenges in the upcoming modeling phase. We will address some of these issues below.
+
+### Correcting Categorical Data Types
+Upon reviewing the summary data, we observed that the character columns could benefit from improved representation using the summary function. To address this issue, we opted to convert categorical data variables into factors. This approach will provide a clearer understanding of the data structure in each column, enabling the summary function to accurately display the count within each category.
+
+```{r factoring}
+# Select character columns that contain categorical data to turn into factor variables
+columns <- c("NAME_CONTRACT_TYPE", "CODE_GENDER", "FLAG_OWN_CAR", "FLAG_OWN_REALTY", "NAME_INCOME_TYPE", "NAME_EDUCATION_TYPE", "NAME_FAMILY_STATUS", "NAME_HOUSING_TYPE", "WEEKDAY_APPR_PROCESS_START", "ORGANIZATION_TYPE", "NAME_TYPE_SUITE")
+
+# Loop over the columns selected and convert them to factors
+for (column in columns) {
+  training_data[[column]] <- factor(training_data[[column]])
+  print(paste("Summary of", column))
+  print(summary(training_data[[column]]))
+}
+
+```
+### Investigating N/A Values
+There is a wide variation in the frequency of missing values across different features, with some requiring thousands of observations to fill, while others have only a few missing entries. Features with a significant proportion of missing values will be eliminated during the modeling stage. For features with a small number of missing observations, such as AMT_ANNUITY with just 12 missing values, we intend to impute these values.
+
+```{r investigating NAs}
+#There are a total of 8,388,094 missing values in the training data set. Are they evenly distributed or focused in one/more variables?
+sum(is.na(training_data))
+
+#summary of NAs in the training data set
+table(colSums(is.na(training_data)))
+
+#For loop describes number of na values in each column for easier interpretation
+column_names = list()
+num_nas = list()
+
+for (i in 1:ncol(training_data)) {
+  if (sum(is.na(training_data[,i])) > 0)
+    {
+    print(paste("THERE ARE",sum(is.na(training_data[,i])),"NA VALUES:", colnames(training_data[i])))
+  }
+#surpressed for readability...
+#  else { 
+#    print(paste("There are no NA values in", colnames(training_data[i])))
+#  }
+}
+```
+# Explanatory Variables
+## Income, Credit Amounts, and Annuity Payments
+Three variables, namely income, credit amount, and annuity payments, are fundamental factors that lenders typically consider when assessing creditworthiness. These variables are inherently interconnected, and we will examine their interactions with other variables in this document. It is crucial to closely examine these variables as they exhibit joint distributions and contain some notable outliers.
+
+```{r income}
+##Income
+summary(training_data$AMT_INCOME_TOTAL) #There's a major anomaly on the higher end. That may be a data entry error or on individual, let's take a look at the histogram
+
+plot(training_data$AMT_INCOME_TOTAL, ylab = "Incomes") #The large income is visible on this chart, and there appear to be a few smaller but still relatively large incomes.
+```
+
+```{r credit amounts}
+##Credit amounts
+summary(training_data$AMT_CREDIT) #The Max value may be an anomaly as it's significantly higher than the 3rd quartile value. Perhaps it belongs to the wealthy individual identified in the previous feature?
+
+#histogram of AMT_CREDIT
+ggplot(training_data, aes(x = AMT_CREDIT)) + geom_histogram(bins = 100) #The data appears to skew left
+
+#plot of the income and credit, categorized by TARGET variable
+training_data %>%
+  filter(AMT_INCOME_TOTAL < 1000000) %>%
+  ggplot(aes(x = AMT_CREDIT, y = AMT_INCOME_TOTAL, color=TARGET)) + geom_point()
+```
+
+```{r annuity}
+# summary of annuity payments. Mean appears to be influence by outliers on the high end to the tune of $3,000.
+summary(training_data$AMT_ANNUITY) 
+
+#plot distribution of AMT_ANNUITY values
+ggplot(training_data, aes(x = AMT_ANNUITY)) + geom_histogram(bins = 55)
+
+```
+Initially, we considered using the glm function to analyze the three primary variables (AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY) as potential predictors. In separate binomial regressions, each feature showed statistical significance at the p < .001 threshold. However, when all variables were included in the model, the p-value for AMT_INCOME_TOTAL exceeded an acceptable threshold, reaching p = 0.42. 
+
+```{r binom regression}
+#Plotting target against income with a summary linear regression line:
+(lm_model1 <-glm(TARGET ~ AMT_INCOME_TOTAL, family=binomial, data = training_data)) %>%
+  summary
+
+# Plotting target against credit with a summary linear regression line:
+(lm_model2 <-glm(TARGET ~ AMT_CREDIT, family=binomial, data = training_data)) %>%
+  summary
+
+# Plotting target against annuity with a summary linear regression line:
+(lm_model3 <-glm(TARGET ~ AMT_ANNUITY, family=binomial, data = training_data)) %>%
+  summary
+
+# Combining the features
+(lm_model3 <-glm(TARGET ~ AMT_ANNUITY + AMT_CREDIT + AMT_INCOME_TOTAL, family=binomial, data = training_data)) %>%
+  summary
+
+```
+
+
+## Contract Type
+Upon closer examination of the categorical variables in the dataset, we discovered that contract type, income, and housing types could potentially exhibit interesting relationships with the variables we initially identified as crucial in assessing a creditor's ability to make timely payments. To illustrate these relationships, we generated density plots depicting how contract type may be associated with total income and annuity amount. We opted to constrain the x-axis of the visualizations because we found that outliers were making the graphs challenging to interpret and extract meaningful insights from. The visualization below indicates that cash loans are typically more prevalent than revolving loans across the specified range for total income, except when total income is less than or equal to 10,000.
+
+```{r income and conract type}
+options(scipen = 999)
+
+plot2 <- training_data %>%
+   filter(AMT_INCOME_TOTAL < 117000000) %>% 
+  ggplot(aes(x = AMT_INCOME_TOTAL, fill = NAME_CONTRACT_TYPE)) +
+  geom_density(alpha = 0.5) +
+    theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Density Plot of Income Amount by Contract Type", x = "Income Total Amount", fill = "Contract Type")
+
+plot2 <- plot2 + xlim(0, 250000)
+
+plot2
+```
+
+## Annuity
+We further sought to investigate whether the observation from the previous visualization remained consistent for the annuity amount. Thus, we generated the following density plot. This visualization indicates that the highest density of annuity amounts for revolving loans falls below approximately $10,000, whereas cash loans tend to represent larger annuity amounts. We intend to conduct a more in-depth analysis of these variables to gain a better understanding of the factors contributing to this relationship.
+
+```{r annuity and contract type}
+# Set the axis labels and limits
+plot <- ggplot(training_data, aes(x = AMT_ANNUITY, fill = NAME_CONTRACT_TYPE)) +
+  geom_density(alpha = 0.5) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Density Plot of Annuity Amount by Contract Type", x = "Annuity Amount", fill = "Contract Type")
+
+plot <- plot + xlim(0, 100000)
+
+# Display the plot
+plot
+```
+
+## Credit and Housing Type
+The following boxplot illustrates the relationship between credit amount and housing type. It is evident from the plot that there is a wider range of credit amounts granted for houses/apartments, with one outlier representing an office apartment at the upper end of the range. This visualization also includes the average line for credit amount (depicted in black), enabling us to compare the distributions of credit amounts for different housing types to the mean credit amount across the entire training set efficiently. We found it particularly noteworthy that customers living with parents can access higher credit amounts compared to those residing in co-op apartments, municipal apartments, or office apartments. Additionally, we acknowledge that while the average credit amount for customers living with their parents may appear lower than that for many other housing types, they have maximum values at the upper end of the scale.
+
+```{r credit amount and home type}
+amt_credit_bp <- ggplot(training_data,
+       aes(x = NAME_HOUSING_TYPE, y = AMT_CREDIT, color = NAME_HOUSING_TYPE)) +
+  geom_boxplot(fill = "white") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Boxplot of Credit Amount by Housing Type", x = "Housing Type", y = "Credit Amount") +
+  guides(color = FALSE)
+
+amt_credit_bp_w_line <- amt_credit_bp +
+  geom_hline(aes(yintercept = mean(AMT_CREDIT)), color = "black")
+
+amt_credit_bp_w_line
+```
+
+## Annuity and Income Type Relationship
+Another variable that may reveal an intriguing relationship with the Target variable is income type, as it can serve as an indicator of socioeconomic status and current job status. Initially, this visualization demonstrates a diverse range of annuities allocated to various income types, with the highest values granted to commercial associates. We intend to conduct further analysis on the relationship between income type and the target variable. However, given our belief that annuity amount will be a significant predictor in the dataset, we wanted to showcase its relationship with income type in our preliminary analysis.
+
+```{r annuity and income type}
+amt_annuity_bp <- ggplot(training_data,
+       aes(x = NAME_INCOME_TYPE, y = AMT_ANNUITY, color = NAME_INCOME_TYPE)) +
+  geom_boxplot(fill = "white") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Boxplot of Annuity Amount by Income Type", x = "Income Type", y = "Annuity Amount") +
+  guides(color = FALSE)
+
+amt_annuity_bp
+```
+
+## Regionality
+For our final visualization, we aimed to illustrate the target variable across regions using solely the training set data. However, since the training dataset lacks a categorical column specifying customers' areas, we opted to bin the "REGION_POPULATION_RELATIVE" variable into eight groups. This variable represents the relative population of the region where the customer resides. To achieve this, we established breakpoints for every 0.5 increment to group similar regions based on population density. Subsequently, we converted the assigned values (1-8) into a factor variable for our boxplot. The resulting boxplot, derived from this process, demonstrates the relationship between the credit amount and the binned region population variable, with an additional layer depicting variations across the target variable.
+
+```{r regions}
+# Define the breaks for binning
+breaks <- c(0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, Inf)
+
+# Bin the variable
+binned_variable <- cut(training_data$REGION_POPULATION_RELATIVE, breaks = breaks, labels = FALSE, include.lowest = TRUE)
+
+# Convert the binned variable back to a factor
+binned_variable <- as.factor(binned_variable)
+
+# Create a side-by-side boxplot
+target_bp <- ggplot(training_data, aes(x = binned_variable, y = AMT_CREDIT, fill = as.factor(TARGET))) +
+  geom_boxplot() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) +
+  labs(title = "Boxplot of Credit Amount by Region Population and Target", x = "Region Population (binned)", y = "Amount Credit", fill = "Target") +
+  scale_fill_manual(values = c("#F8766D", "#00BFC4")) # Set custom fill colors
+
+target_bp
+
+```
+
+# Merging Additional Tables
+## Joining Bureau Table
+While our primary focus is on the data readily available in the training set, we also wanted to explore borrowers' other credit information, which is contained in the bureau table. To achieve this, we created a new table by joining the training table with the bureau table, named "target_bureau." We visually analyzed the relationship between CREDIT_DAY_OVERDUE (the number of overdue days reported to the credit bureau by all lenders) and AMT_CREDIT (loan amount from Home Credit), overlaying our target value. Most current customers are under three months delinquent, thereby not falling into the majority class. Therefore, we opted to concentrate on customers who are 90 days late with any creditor. While there appears to be some correlation, it is not particularly strong in this relationship. Nonetheless, this observation may warrant further examination in the modeling phase.
+
+```{r joining tables}
+#joining tables -- target & bureau tables
+target_bureau <- merge(training_data, bureau, by="SK_ID_CURR")
+
+#Summarizes the CREDIT_DAY_OVERDUE value, appears majority class = 0.
+summary(bureau$CREDIT_DAY_OVERDUE)
+
+#How many NAs are in this bureau variable? 0. 
+sum(is.na(bureau$CREDIT_DAY_OVERDUE))
+
+#plot relationship between credit_day_overdue (all reported) and AMT credit (loan amount with Home Credit), categorized by target value. 
+target_bureau %>%
+  filter(CREDIT_DAY_OVERDUE > 90) %>%
+  ggplot(aes(x = CREDIT_DAY_OVERDUE, y = AMT_CREDIT, color = TARGET)) + geom_point()
+
+```
+
+# Initial Findings & Results
+
+The key findings from this initial Exploratory Data Analysis (EDA) stage include:
+<ul>
+<li>Identification of the target variable (TARGET), which will be utilized in the supervised regression model created during the modeling phase.</li>
+<li>Discussion on the approach to handling missing values within the datasets.</li>
+<li>Identification of the primary datasets intended for use in the modeling phase: application_{train|test}.csv, bureau.csv, and potentially previous_applications.csv if a broader sample is required to address classification imbalance.</li>
+<li>Determination of the main variables in the application_{train|test} dataset that will be incorporated into future classification models: AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, REG_REGION_NOT_LIVE_REGION, NAME_INCOME_TYPE, NAME_EDUCATION_TYPE, NAME_HOUSING_TYPE, OCCUPATION_TYPE.</li>
+</ul>
