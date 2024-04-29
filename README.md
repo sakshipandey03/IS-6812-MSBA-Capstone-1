@@ -1,2 +1,3 @@
-# IS-6812-MSBA-Capstone-1
-This is a repo for my MASBA Capstone-1.
+# IS-6812-MSBA-Capstone- Home Credit Default Risk
+## Business Problem & Project Objective.
+Home Credit Group's mission is to offer financial solutions to individuals with limited or no credit history. One of their main challenges is accurately assessing credit risk to prevent loan defaults while still granting loans to deserving clients. To achieve this, Home Credit utilizes various data sources, including telecom and transactional data, to improve the borrowing experience. Their project focuses on identifying creditworthy individuals without credit history, reducing loan rejections for eligible applicants, and ensuring loans aren't given to those unable to make payments. They achieve this by evaluating clients' likelihood to meet loan obligations, effectively using the target variable.
