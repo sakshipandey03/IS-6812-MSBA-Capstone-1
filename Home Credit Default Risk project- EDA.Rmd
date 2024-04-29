@@ -1,0 +1,97 @@
+---
+title: "Home Credit Default Risk project- EDA"
+author: "Sakshi Pandey"
+date: "2024-02-18"
+output:
+  html_document:
+    toc: true
+    theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+# Introduction
+```{r}
+
+# Individuals with poor or nonexistent credit often require assistance obtaining personal, home, or business loans. Unfortunately, these individuals are frequently targeted by lenders who impose exorbitant fees and high annual percentage rates.
+
+# Home Credit aims to address this issue by focusing its business model on individuals with poor or no credit history, all while avoiding predatory lending practices. Home Credit needs to develop a method for predicting each applicant's ability to make loan payments to achieve this.
+
+# In this exploratory data analysis (EDA) assignment, we aim to examine Home Credit's dataset to understand the variables we will work with.
+
+# Our project will employ a classification model to forecast which customers will most likely repay their loans. This prediction can enhance a risk model for loan approvals or facilitate more targeted marketing campaigns.
+
+# The precursory deliverable for this project will be a list of customers identified as likely to fulfill their loan obligations. Any additional deliverables will be determined through collaboration with our group and professors. We aim to have a draft report ready by April 2, 2024, with the final deliverable due April 16, 2024.
+
+```
+
+# Loading Packages & Importing Files
+
+```{r}
+# Loading packages
+library(janitor)
+```
+
+```{r}
+library(tictoc)
+tic()
+library(psych)
+library(tidyverse)
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+# Import files, set stringAsFactors = FALSE
+application_train <- read.csv(file = "application_train.csv", stringsAsFactors = FALSE)
+```
+# Inspect Data
+
+```{r}
+
+# The dataset comprises integer, character, and numeric variables..
+# str(application_train)
+# summary(application_train)
+
+# We will convert all 'character' variables to factor variables as they are more memory efficient, and will better represent the ordered relationship between levels and will ensure that plots work as expected.
+
+application_train$NAME_CONTRACT_TYPE <- factor(application_train$NAME_CONTRACT_TYPE)
+application_train$CODE_GENDER <- factor(application_train$CODE_GENDER)
+application_train$FLAG_OWN_CAR <- factor(application_train$FLAG_OWN_CAR)
+application_train$FLAG_OWN_REALTY <- factor(application_train$FLAG_OWN_REALTY)
+application_train$NAME_TYPE_SUITE <- factor(application_train$NAME_TYPE_SUITE)
+application_train$NAME_INCOME_TYPE <- factor(application_train$NAME_INCOME_TYPE)
+application_train$NAME_EDUCATION_TYPE <- factor(application_train$NAME_EDUCATION_TYPE)
+application_train$NAME_FAMILY_STATUS <- factor(application_train$NAME_FAMILY_STATUS)
+application_train$NAME_HOUSING_TYPE <- factor(application_train$NAME_HOUSING_TYPE)
+application_train$OCCUPATION_TYPE <- factor(application_train$OCCUPATION_TYPE)
+application_train$WEEKDAY_APPR_PROCESS_START <- factor(application_train$WEEKDAY_APPR_PROCESS_START)
+application_train$ORGANIZATION_TYPE <- factor(application_train$ORGANIZATION_TYPE)
+application_train$FONDKAPREMONT_MODE <- factor(application_train$FONDKAPREMONT_MODE)
+application_train$HOUSETYPE_MODE <- factor(application_train$HOUSETYPE_MODE)
+application_train$WALLSMATERIAL_MODE <- factor(application_train$WALLSMATERIAL_MODE)
+application_train$EMERGENCYSTATE_MODE <- factor(application_train$EMERGENCYSTATE_MODE)
+
+# Upon examining the data, we notice the presence of negative values in the "DAYS_" fields. Discussions among users on Kaggle suggest that this is standard practice, indicating the number of days preceding the loan application to which the variable pertains.
+
+# Observing the DAYS_EMPLOYED variable, we see a maximum value of 365243, which should be indicated as missing (NA).
+
+```
+
+# Scope of NAs
+
+```{r}
+# Now, we will explore the NA fields in this dataset. Would it do us better to remove any rows with NAs? 
+
+at <- clean_names(application_train)
+
+sapply(at,function(x) sum(is.na(x)))
+
+```
+
