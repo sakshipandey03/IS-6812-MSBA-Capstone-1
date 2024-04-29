@@ -45,7 +45,7 @@ Our solution empowers Home Credit to implement effective risk mitigation strateg
 
 (3) Customer Demographics: Factors like customer age affect repayment rates, with younger individuals more likely to default.
 
-### Conclusion
+
 The loan default prediction solution enhances Home Credit's risk management capabilities and contributes to business growth by expanding the customer base and improving revenue streams. By leveraging technology and advanced analytics, Home Credit can make informed decisions, reduce risks, and optimize its lending processes.
 
 ## Difficulties Encountered
@@ -73,7 +73,7 @@ Meeting project deadlines amidst complex challenges added pressure. Balancing qu
 ### 7. Domain Knowledge: 
 Understanding the intricacies of the financial domain, including credit scoring and risk assessment, required additional learning and collaboration with domain experts.
 
-### Conclusion
+
 Despite these challenges, our team's dedication, perseverance, and collaborative efforts enabled us to overcome obstacles and deliver a robust loan default prediction solution. Each difficulty we encountered provided an opportunity for growth and learning, ultimately contributing to the project's success.
 
 
